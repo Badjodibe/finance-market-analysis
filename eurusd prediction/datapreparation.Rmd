@@ -1,0 +1,151 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+train <- read_csv("../EURUSDPrediction/Data/train.csv")
+```
+
+
+```{r}
+view(train)
+```
+
+
+```{r}
+
+```
+
+```{r}
+data_preparation <- function(v){
+  for (i in 1:7) {
+     minf <- paste0("Minf", i - j);
+      msup <- paste0("Msup", i - j);
+      body <- paste0("Body", i - j);
+      v$msup <- NULL;
+       v$minf <- NULL;
+        v$body <- NULL;
+  }
+  v$up <- NULL;
+  v$down <- NULL;
+  v$HighPred <- NULL;
+  v$LowPred <- NULL;
+  
+  v <- v %>% mutate(
+  Minf = case_when(
+    Open < Close ~ Open - Low,
+    Open >= Close ~ Close - Low
+  ),
+  Msup = case_when(
+    Open < Close ~ High - Close,
+    Open >= Close ~ High - Open
+  ),
+  Body = abs(Open - Close)
+)
+  len <- dim(v)[1] -24
+
+  for (i in 10:len) {
+      up <- 0;
+      down <- 0;
+      high <- v[i, "High"];
+      low <- v[i, "Low"];
+  for (j in seq(from = i-1,by = -1, length.out = 9 )) {
+      minf <- paste0("Minf", i - j);
+      msup <- paste0("Msup", i - j);
+      body <- paste0("Body", i - j);
+      v[i,minf] = v[j,"Minf"];
+      v[i,msup] = v[j, "Msup"];
+      v[i,body] = v[j, "Body"];
+      if (v[i, "Open"] > v[i, "Close"]) {
+        down <- down +1;
+      }
+      else{
+        up <- up+1;
+      }
+  }
+  for (j in seq(from = i+1, by = 1, length.out = 24)) {
+      if (v[j,"High"] > high) {
+        high <- v[j, "High"];
+      }
+      if(v[j, "Low"] < low ){
+        low <- v[j, "Low"];
+      }
+  }
+   v[i, "HighPred"] <- high;
+   v[i, "LowPred"] <- low;
+   if (up > down) {
+     v[i, "Up"] <- 1
+     v[i, "Down"] <- 0
+   }
+   else{
+     v[i, "Up"] <- 0
+     v[i, "Down"] <- 1
+   }
+  }
+  return(v)
+}
+
+```
+
+
+```{r}
+test <- read_csv("../EURUSDPrediction/Data/test.csv")
+test_prepared <- data_preparation(test)
+view(test_prepared)
+
+
+eval_preparation <- read_csv("../EURUSDPrediction/Data/eval.csv")
+view(eval_preparation)
+eval_prepared <- data_preparation(eval_preparation)
+view(eval_prepared)
+len <- dim(eval_prepared)[1]
+
+
+train_prepared <- data_preparation(train)
+len <- dim(test_prepared)[1]
+
+view(eval_prepared)
+view(train_prepared)
+test_prepared <- test_prepared[4060, !names(test_prepared) %in% c("Volume", "Adj Close")]
+len <- dim(eval_prepared)[1]
+eval_prepared <- eval_prepared[!1537, !names(eval_prepared) %in% c("Volume", "Adj Close")]
+
+train_prepared <- train_prepared[!5624, !names(train_prepared) %in% c("Volume", "Adj Close")]
+write_csv(test_prepared, "../EURUSDPrediction/Data/test_prepared.csv")
+write_csv(train_prepared, "../EURUSDPrediction/Data/eval_prepared.csv")
+write_csv(train_prepared, "../EURUSDPrediction/Data/train_prepared.csv")
+view(train_prepared)
+view(test_prepared)
+view(eval_prepared)
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+v$Open[1]
+```
+
+
+```{r}
+
+view(v)
+```
+
+
+```{r}
+v["Minf7"] <- NULL;
+v["Msup7"] <- NULL;
+v["Body7"] <- NULL;
+view(v)
+```
+

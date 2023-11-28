@@ -1,0 +1,172 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+eurusd <- read_csv("../eurusdDaillyHLS.csv")
+view(eurusd)
+```
+
+```{r}
+eurusd_up <- eurusd %>% filter(Trend2 == "Up")
+eurusd_down <- eurusd %>% filter(Trend2 == "down")
+table(eurusd_down$Out)
+table(eurusd_up$Out)
+```
+
+```{r}
+
+eurusd_down %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down  %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 50 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusd_down %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down  %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 50 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusd_down500 <- eurusd_down %>% filter(tpTmp > 500 & Out == "gain" & Psup1 < 250)
+eurusd_down500P<- eurusd_down %>% filter(Out == "pert")
+```
+
+```{r}
+eurusd_down500 %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500  %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 220 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+table(eurusd_down500$Out)
+```
+
+```{r}
+length(eurusd_down500$Out)
+length(eurusd_down500P$Out)
+```
+
+```{r}
+eurusd_down500 %>% ggplot(aes(x = Out, y = Pip2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500  %>% ggplot(aes(x = Pip2)) + geom_histogram(aes(color = "black"), bins = 500 ) + geom_rug() + facet_wrap(Out~.)
+eurusd_down500  %>% ggplot(aes(x = Pip2)) + geom_density()
+
+eurusd_down500P %>% ggplot(aes(x = Out, y = Pip2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500P  %>% ggplot(aes(x = Pip2)) + geom_histogram(aes(color = "black"), bins = 500 ) + geom_rug() + facet_wrap(Out~.)
+eurusd_down500P  %>% ggplot(aes(x = Pip2)) + geom_density()
+```
+
+```{r}
+eurusd_down500 %>% ggplot(aes(x = Out, y = Minf2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500  %>% ggplot(aes(x = Minf2)) + geom_histogram(aes(color = "black"), bins = 500 ) + geom_rug() + facet_wrap(Out~.)
+eurusd_down500  %>% ggplot(aes(x = Minf2)) + geom_density()
+
+eurusd_down500P %>% ggplot(aes(x = Out, y = Minf2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500P  %>% ggplot(aes(x = Minf2)) + geom_histogram(aes(color = "black"), bins = 500 ) + geom_rug() + facet_wrap(Out~.)
+eurusd_down500P  %>% ggplot(aes(x = Minf2)) + geom_density()
+```
+
+```{r}
+eurusd_down500 %>% ggplot(aes(x = Out, y = Msup2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500  %>% ggplot(aes(x = Msup2)) + geom_histogram(aes(color = "black"), bins = 500 ) + geom_rug() + facet_wrap(Out~.)
+eurusd_down500  %>% ggplot(aes(x = Msup2)) + geom_density()
+eurusd_down500P %>% ggplot(aes(x = Out, y = Msup2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500P  %>% ggplot(aes(x = Msup2)) + geom_histogram(aes(color = "black"), bins = 500 ) + geom_rug() + facet_wrap(Out~.)
+eurusd_down500P  %>% ggplot(aes(x = Msup2)) + geom_density()
+```
+
+```{r}
+eurusd_down500P %>% filter( Pip2 > 500) %>% count(Out)
+```
+
+```{r}
+eurusd_down500 %>% filter( Pip2 > 500) %>% count(Out)
+```
+
+```{r}
+eurusd_down500 %>% ggplot(aes(x = Out, y = Psup1)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500  %>% ggplot(aes(x = Psup1)) + geom_histogram(aes(color = "black"), bins = 500 ) + geom_rug() + facet_wrap(Out~.)
+eurusd_down500  %>% ggplot(aes(x = Psup1)) + geom_density()
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+eurusd_down500P %>% ggplot(aes(x = Out, y = Pip2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500P  %>% ggplot(aes(x = Pip2)) + geom_histogram(aes(color = "black"), bins = 500 ) + geom_rug() + facet_wrap(Out~.)
+eurusd_down500  %>% ggplot(aes(x = Pip2)) + geom_density()
+```
+
+eurusd_down500B
+
+```{r}
+eurusd_down500P %>% ggplot(aes(x = Out, y = Pip2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500P  %>% ggplot(aes(x = Pip2)) + geom_histogram(aes(color = "black"), bins = 50 ) + geom_rug() + facet_wrap(Out~.)
+
+eurusd_down500B <- eurusd_down500 %>% select(Pip2)
+eurusd_down500MS <- eurusd_down500 %>% select(Msup2)
+eurusd_down500MI <- eurusd_down500 %>% select(Minf2)
+```
+
+```{r}
+eurusd_down500 %>% ggplot(aes(x = Pip2, y = tpTmp)) + geom_point()
+```
+
+```{r}
+eurusd_down500 %>% ggplot(aes(x = Pip2, y = slTmp)) + geom_point()
+```
+
+```{r}
+maxB <- max(eurusd_down500B)
+minB <- min(eurusd_down500B)
+maxMI <- max(eurusd_down500MI)
+minMI <- min(eurusd_down500MI)
+maxMS <- max(eurusd_down500MS)
+minMS <- min(eurusd_down500MS)
+eurusd_down500PB <- eurusd_down500P[ between(eurusd_down500P$Pip2, minB, maxB) & between(eurusd_down500P$Minf2, minMI, maxMI) & between(eurusd_down500P$Msup2, minMS, maxMS), ] 
+
+```
+
+```{r}
+table(eurusd_down500PB$Out)
+table(eurusd_down500$Out)
+```
+
+```{r}
+hist(eurusd_down500$Msup2)
+hist(eurusd_down500PB$Msup2)
+```
+
+```{r}
+eurusd_down500 %>% ggplot(aes(x=slTmp)) + geom_histogram(aes(color = "black"), bins = 700)
+```
+
+```{r}
+plot(eurusd_down500$Pip2, eurusd_down500$tpTmp)
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+eurusd_down500 %>% ggplot(aes(x = Out, y = Minf2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusd_down500  %>% ggplot(aes(x = Minf2)) + geom_histogram(aes(color = "black"), bins = 50 ) + geom_rug() + facet_wrap(Out~.)
+```

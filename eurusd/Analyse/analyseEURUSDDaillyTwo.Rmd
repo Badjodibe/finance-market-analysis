@@ -1,0 +1,546 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(data.table)
+eurusd <- read_csv("../eurusdDaillyHLS.csv")
+view(eurusd)
+```
+
+```{r}
+view(eurusd)
+dim(eurusd)
+c(min(eurusd$Date), max(eurusd$Date))
+dim(eurusd[!duplicated(eurusd["Date"]),])
+```
+
+```{r}
+stat <- table(eurusd$Out)
+c(stat, stat/length(eurusd$Out))
+```
+
+# Subdivision par Up et down ( premiere couche)
+
+```{r}
+eurusdUp <- eurusd[eurusd["Trend2"]=="Up" & !is.na(eurusd["Out"]), ]
+eurusdDown <- eurusd[eurusd["Trend2"]=="down" & !is.na(eurusd["Out"]), ]
+```
+
+## Étude de la première catégorie descendant des bougies prédictives.
+
+#### Commencons par les pips des corps
+
+```{r echo=TRUE}
+tD <- table(eurusdDown$Out)
+c(tD, tD/length(eurusdDown$Out))
+eurusdDown %>% ggplot(aes(x = Out, y = Pip2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDown  %>% ggplot(aes(x = Pip2)) + geom_histogram(aes(color = "black"), bins = 220 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+c'est posible de scindé les données en deux catégories : \> 2000, 0 1250 et 1250 a 2000
+
+```{r}
+pdb <- c(0, 1250)
+eurusdDB1250 <- eurusdDown[eurusdDown["Pip2"] >= 0 & eurusdDown["Pip2"] < 1250, ]
+eurusdDB2000 <- eurusdDown[eurusdDown["Pip2"] >= 2000, ]
+eurusdDB12_20 <- eurusdDown[eurusdDown["Pip2"]>=1250 & eurusdDown["Pip2"] < 2000, ]
+```
+
+#### Le cas de body inférieur a 1250 ( 3ime couche)
+
+```{r}
+tdb1250 <- table(eurusdDB1250$Out)
+c(tdb1250, tdb1250/length(eurusdDB1250$Out))
+eurusdDB1250  %>% ggplot(aes(x = Minf2)) + geom_histogram(aes(color = "black"), bins = 150 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+subdivision des meche inferieur \< 750 et compris entre 750 900 et 900\>
+
+```{r}
+table(eurusdDB1250[eurusdDB1250["Minf2"]<750,]$Out)
+table(eurusdDB1250[eurusdDB1250["Minf2"]>=750 & eurusdDB1250["Minf2"]< 900,]$Out)
+eurusdDB1250MI750 <-eurusdDB1250[eurusdDB1250["Minf2"]<750,]
+eurusdDB1250MI900 <- eurusdDB1250[eurusdDB1250["Minf2"]>=750 & eurusdDB1250["Minf2"]< 900,]
+eurusdDB1250MI900P<- eurusdDB1250[eurusdDB1250["Minf2"]>=900,]
+```
+
+#### CAS de meche inferieur \< 750 (4ieme couche)
+
+```{r}
+tdb1250mi750 <- table(eurusdDB1250MI750$Out)
+c(tdb1250mi750, tdb1250mi750/length(eurusdDB1250MI750$Out))
+eurusdDB1250MI750  %>% ggplot(aes(x = Msup2)) + geom_histogram(aes(color = "black"), bins = 150 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+Les meche supérieur , on prend ceux qui sont \<750 et \>=750
+
+```{r}
+table(eurusdDB1250MI750[eurusdDB1250MI750["Msup2"] < 750,]$Out)
+eurusdDB1250MI750MS750 <- eurusdDB1250MI750[eurusdDB1250MI750["Msup2"] < 750,]
+eurusdDB1250MI750MS750P <- eurusdDB1250MI750[eurusdDB1250MI750["Msup2"] >= 750,]
+```
+
+### Pour eurusdDB1250MI750MS750 analysons les sl et les tp
+
+Puisque que c'est un up qu'on analyse, le deuxieme est down il faut faire un sell, pour le sl on va analysé la meche sup de bougie 1.
+
+#### Pour le SL
+
+```{r}
+table(eurusdDB1250MI750MS750$Out)
+eurusdDB1250MI750MS750 %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB1250MI750MS750  %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 700 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdDB1250MI750MS750 %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB1250MI750MS750  %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 700 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdDB1250MI750MS750 %>% filter(tpTmp > 750) %>%  ggplot(aes(x= Out, y= slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+### On prend la seconde partie DB1250MI750MS750P
+
+#### Pour les tp
+
+```{r}
+eurusdDB1250MI750MS750P %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB1250MI750MS750P  %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 700 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdDB1250MI750MS750P %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB1250MI750MS750P  %>% ggplot(aes(x = sltpTmp)) + geom_histogram(aes(color = "black"), bins = 4 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdDB1250MI750MS750P %>% filter(tpTmp > 750) %>%  ggplot(aes(x= Out, y= slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+#### Analyse de la seconde couche DB1250MI900
+
+```{r}
+tdb1250mi900 <- table(eurusdDB1250MI900$Out)
+c(tdb1250mi900, tdb1250mi900/length(eurusdDB1250MI900$Out))
+eurusdDB1250MI900  %>% ggplot(aes(x = Msup2)) + geom_histogram(aes(color = "black"), bins = 150 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+### Pour eurusdDB1250MI900 analysons les sl et les tp
+
+```{r}
+table(eurusdDB1250MI900$Out)
+eurusdDB1250MI900 %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB1250MI900  %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+table(eurusdDB1250MI900$Out)
+eurusdDB1250MI900 %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB1250MI900  %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdDB1250MI900 %>% filter(tpTmp > 800) %>%  ggplot(aes(x= Out, y= slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+### Analyse de eurusdDB1250MI900P
+
+```{r}
+table(eurusdDB1250MI900P$Out)
+eurusdDB1250MI900P %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB1250MI900P  %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+table(eurusdDB1250MI900P$Out)
+eurusdDB1250MI900P %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB1250MI900P  %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+### Analysons le sl et tp de ces perte
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+### Analyse de la seconde couche de body B2000
+
+```{r}
+table(eurusdDB2000$Out)
+eurusdDB2000 %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB2000  %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+table(eurusdDB2000$Out)
+eurusdDB2000 %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB2000  %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdDB2000 %>% filter(tpTmp > 1200) %>%  ggplot(aes(x= Out, y= slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+## Analysons le b12_20 de la seconde couche
+
+```{r}
+table(eurusdDB12_20$Out)
+```
+
+### Analysons les sl et le tp de ce dernier
+
+```{r}
+table(eurusdDB12_20$Out)
+eurusdDB12_20 %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB12_20 %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+table(eurusdDB12_20$Out)
+eurusdDB12_20 %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdDB12_20 %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+## Maintenant on passe a up
+
+```{r}
+tD <- table(eurusdUp$Out)
+c(tD, tD/length(eurusdUp$Out))
+eurusdUp  %>% ggplot(aes(x = Pip2)) + geom_histogram(aes(color = "black"), bins = 500 ) + geom_rug() + facet_wrap(Out~.)
+eurusdUp %>% ggplot(aes(x = Out, y = Pip2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+Un peu indécis sur les pips
+
+```{r}
+eurusdUp  %>% ggplot(aes(x = Minf2)) + geom_histogram(aes(color = "black"), bins = 100 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdUp  %>% ggplot(aes(x = Msup2)) + geom_histogram(aes(color = "black"), bins = 100 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+La décision est price sur ces deux catégories \<=500 \>500
+
+```{r}
+eurusdUS500 <- eurusdUp[eurusdUp["Msup2"] <=500,]
+eurusdUS500P <- eurusdUp[eurusdUp["Msup2"] >500,]
+```
+
+#### Passons la l'analyse de la priemer couche ( eurusdUS500)
+
+```{r}
+tu <- table(eurusdUS500$Out)
+c(tu, tu/length(eurusdUS500$Out))
+eurusdUS500  %>% ggplot(aes(x = Pip2)) + geom_histogram(aes(color = "black"), bins = 100 ) + geom_rug() + facet_wrap(Out~.)
+eurusdUS500 %>% ggplot(aes(x = Out, y = Pip2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+On subdivis ca en deux partie \> 1250 \< 1250 de pips2
+
+```{r}
+eurusdUS500P1250P <- eurusdUS500[eurusdUS500["Pip2"] >=1250,]
+eurusdUS500P1250 <- eurusdUS500[eurusdUS500["Pip2"] <1250,]
+length(eurusdUS500P1250P$Out)
+length(eurusdUS500P1250$Out)
+```
+
+#### On prend la catégorie \< 1250 US500P1250
+
+```{r}
+eur
+tu_ <- table(eurusdUS500P1250$Out)
+c(tu, tu/length(eurusdUS500P1250$Out))
+eurusdUS500P1250  %>% ggplot(aes(x = Minf2)) + geom_histogram(aes(color = "black"), bins = 100 ) + geom_rug() + facet_wrap(Out~.)
+eurusdUS500P1250 %>% ggplot(aes(x = Out, y = Minf2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+```{r}
+table(eurusdUS500P1250[eurusdUS500P1250["Minf2"]< 450, ]$Out)
+table(eurusdUS500P1250[eurusdUS500P1250["Minf2"]> 450,]$Out)
+```
+
+On sciencder et ces deux catégorie Min\>450, Minf\<450
+
+```{r}
+eurusdUS500P1250M450 <- eurusdUS500P1250[eurusdUS500P1250["Minf2"]< 450, ]
+eurusdUS500P1250M450P <- eurusdUS500P1250[eurusdUS500P1250["Minf2"]> 450,]
+```
+
+```{r}
+
+```
+
+#### Etude de sl tp de US500P1250P500M450
+
+```{r}
+table(eurusdUS500P1250M450$Out)
+eurusdUS500P1250M450 %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500P1250M450 %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+Je prends le sl est = 500
+
+```{r}
+table(eurusdUS500P1250M450$Out)
+eurusdUS500P1250M450 %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500P1250M450 %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdUS500P1250M450 %>% filter(tpTmp > 750) %>%  ggplot(aes(x= Out, y= slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+```{r}
+
+```
+
+Je prends le tp á 250
+
+#### Etude de sl tp de US500P1250P500M450P
+
+```{r}
+table(eurusdUS500P1250M450P$Out)
+eurusdUS500P1250M450P %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500P1250M450P %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+table(eurusdUS500P1250M450P$Out)
+eurusdUS500P1250M450P %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500P1250M450P %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdUS500P1250M450P %>% filter(tpTmp > 500) %>%  ggplot(aes(x= Out, y= slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+Etude de la catérgorie deux P1250P
+
+```{r}
+tu_ <- table(eurusdUS500P1250P$Out)
+c(tu_, tu_/length(eurusdUS500P1250P$Out))
+eurusdUS500P1250P  %>% ggplot(aes(x = Minf2)) + geom_histogram(aes(color = "black"), bins = 100 ) + geom_rug() + facet_wrap(Out~.)
+eurusdUS500P1250P %>% ggplot(aes(x = Out, y = Minf2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+Analyse de sl et tp de 1250plus
+
+```{r}
+table(eurusdUS500P1250P$Out)
+eurusdUS500P1250P %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500P1250P %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+Sl est 500
+
+```{r}
+table(eurusdUS500P1250P$Out)
+eurusdUS500P1250P %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500P1250P %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdUS500P1250M450P %>% filter(tpTmp > 750) %>%  ggplot(aes(x= Out, y= slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+Maintenant on analyse la seconde partie S500P
+
+```{r}
+tu_ <- table(eurusdUS500P$Out)
+c(tu_, tu_/length(eurusdUS500P$Out))
+eurusdUS500P  %>% ggplot(aes(x = Minf2)) + geom_histogram(aes(color = "black"), bins = 100 ) + geom_rug() + facet_wrap(Out~.)
+eurusdUS500P %>% ggplot(aes(x = Out, y = Minf2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+On scinde en deux catégorie \>200 \< 200
+
+```{r}
+eurusdUS500PI200 <- eurusdUS500P[eurusdUS500P["Minf2"]<200, ]
+eurusdUS500PI200P <- eurusdUS500P[eurusdUS500P["Minf2"]>200, ]
+```
+
+```{r}
+table(eurusdUS500PI200$Out)
+table(eurusdUS500PI200P$Out)
+```
+
+#### étudions la premier partie de cette subdivison
+
+```{r echo=TRUE}
+tu_ <- table(eurusdUS500PI200P$Out)
+c(tu_, tu_/length(eurusdUS500PI200P$Out))
+eurusdUS500PI200P  %>% ggplot(aes(x = Pip2)) + geom_histogram(aes(color = "black"), bins = 100 ) + geom_rug() + facet_wrap(Out~.)
+eurusdUS500PI200P %>% ggplot(aes(x = Out, y = Pip2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+il ya deux subdivision
+
+S500PI200 sl tp
+
+```{r}
+table(eurusdUS500PI200$Out)
+eurusdUS500PI200 %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500PI200 %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+
+```
+
+```{r}
+eurusdUS500PI200 %>% filter(tpTmp > 1000) %>%  ggplot(aes(x= Out, y= slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+```{r}
+table(eurusdUS500PI200$Out)
+eurusdUS500PI200 %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500PI200 %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+Pour la catégorie S500PI200P
+
+```{r}
+table(eurusdUS500PI200P$Out)
+eurusdUS500PI200P %>% ggplot(aes(x = Out, y = tpTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500PI200P %>% ggplot(aes(x = tpTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+eurusdUS500PI200P %>% filter(tpTmp > 750) %>%  ggplot(aes(x= Out, y= slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+```
+
+```{r}
+table(eurusdUS500PI200P$Out)
+eurusdUS500PI200P %>% ggplot(aes(x = Out, y = slTmp)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500PI200P %>% ggplot(aes(x = slTmp)) + geom_histogram(aes(color = "black"), bins = 7 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+Le dernier catégorie
+
+```{r}
+table(eurusdUS500PI200P$Out)
+eurusdUS500PI200P %>% ggplot(aes(x = Out, y = Pip2)) + geom_violin(aes(fill = as_factor(Out))) + geom_jitter()
+eurusdUS500PI200P %>% ggplot(aes(x = Pip2)) + geom_histogram(aes(color = "black"), bins = 700 ) + geom_rug() + facet_wrap(Out~.)
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```

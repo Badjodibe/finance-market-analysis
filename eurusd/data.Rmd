@@ -1,0 +1,83 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+for (i in 4:8 ){
+  filename <- paste0("hd", paste0(i,".txt"))
+  data <- read_csv(filename)
+  names(data) <- c("Date", "High1", "Down1", "High2", "Down2")
+  data <- data[!duplicated(data["Date"]),]
+  write_csv(data, filename)
+}
+
+```
+```{r}
+data <- read_csv("h1.txt")
+names(data) <- c("Date", "High1", "Low1", "High2", "Low2")
+for (i in 2:13) {
+  filename <- paste0("h", paste0(i,".txt"))
+  dataimp <- read_csv(filename)
+  names(dataimp) <- c("Date", "High1", "Low1", "High2", "Low2")
+  data <- rbind(data, dataimp)
+}
+view(data)
+```
+```{r}
+for (i in 1:8) {
+  filename <- paste0("hd", paste0(i,".txt"))
+  dataimp <- read_csv(filename)
+  names(dataimp) <- c("Date", "High1", "Low1", "High2", "Low2")
+  data <- rbind(data, dataimp)
+}
+library(tidyverse)
+```
+```{r}
+data <- data[!duplicated(data["Date"]),]
+data$Date <- str_sub(data$Date, 1,10)
+view(data)
+```
+
+```{r}
+eurusd <-  eurusd %>% mutate(Open1 = case_when(
+  Trend1 == "up"~ Low1 + Minf1,
+  Trend1 == "down"~ High1 - Psup1,
+  TRUE ~ 0
+),
+Close1 = case_when(
+  Trend1 == "up"~ High1 - Psup1,
+  Trend1 == "down"~ Low1 +  Minf1,
+  TRUE ~ 0
+),
+slTmp = case_when(
+  Trend2 == "Up" & Trend1 == "up"~ Pip1 + Psup1,
+  Trend2 == "Up" & Trend1 == "down"~ Psup1,
+  Trend2 == "down" & Trend1 == "down"~ Pip1 + Minf1,
+  Trend2 == "down" & Trend1 == "up"~ Minf1,
+  TRUE ~ 0
+),
+tpTmp = case_when(
+  Trend2 == "Up" & Trend1 == "up"~ Minf1,
+  Trend2 == "Up" & Trend1 == "down"~ Pip1 + Minf1,
+  Trend2 == "down" & Trend1 == "down"~ Psup1,
+  Trend2 == "down" & Trend1 == "up"~ Pip1 + Psup1,
+  TRUE ~ 0
+)
+)
+```
+
+
+```{r}
+write_csv(eurusd, "eurusdDaillyHLS.csv")
+```
+
+```{r}
+date_null <- full %>% filter(is.na(High1)) %>% select(Date)
+view(date_null)
+```
+```{r}
+view(full)
+write_csv(full, "eurusdDaillyHLS.csv")
+```
+

@@ -1,0 +1,123 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+library(zoo)
+```
+
+
+```{r}
+train <- read_csv("../EURUSDPrediction/Data/train.csv")
+test <- read_csv("../EURUSDPrediction/Data/test.csv")
+eval <- read_csv("../EURUSDPrediction/Data/eval.csv")
+```
+
+
+```{r}
+preparation <- function(data){
+  data <- data %>% mutate(
+  Max = rollapply(High, width = 24, FUN = max, align = "left", fill = NA), 
+  Min = rollapply(Low, width = 24, FUN = min, align = "left", fill = NA),
+  MaxC = abs(Max - Close),
+  MinC = abs(Min - Close),
+  Target = ifelse( MaxC >= MinC, Max, Min), 
+  # close average price
+  Avg_priceC_5 = rollapply(Close, width = 6, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  Avg_priceC_12 = rollapply(Close, width = 12, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  Avg_priceC_24 = rollapply(Close, width = 24, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  
+  # Standard deviation Close
+  Std_priceC_5 = rollapply(Close, width = 6, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  Std_priceC_12 = rollapply(Close, width = 12, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  Std_priceC_24 = rollapply(Close, width = 24, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  # Average price Open
+  Avg_priceO_5 = rollapply(Open, width = 6, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  Avg_priceO_12 = rollapply(Open, width = 12, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  Avg_priceO_24 = rollapply(Open, width = 24, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  
+  # Standard deviation Open
+  Std_priceO_5 = rollapply(Open, width = 6, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  Std_priceO_12 = rollapply(Open, width = 12, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  Std_price0_24 = rollapply(Open, width = 24, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  
+  # Average price High
+  Avg_priceH_5 = rollapply(High, width = 6, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  Avg_priceH_12 = rollapply(High, width = 12, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  Avg_priceH_24 = rollapply(High, width = 24, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  
+  # Standard deviation High
+  Std_priceH_5 = rollapply(High, width = 6, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  Std_priceH_12 = rollapply(High, width = 12, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  Std_priceH_24 = rollapply(High, width = 24, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  
+  # Average price Low
+  Avg_priceL_5 = rollapply(Low, width = 6, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  Avg_priceL_12 = rollapply(Low, width = 12, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  Avg_priceL_24 = rollapply(Low, width = 24, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  
+  # Standard deviation Low
+  Std_priceL_5 = rollapply(Low, width = 6, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  Std_priceL_12 = rollapply(Low, width = 12, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  Std_priceL_24 = rollapply(Low, width = 24, FUN = sd , align = "right", fill = NA, partial = FALSE),
+  
+  # variation with previous
+  
+  Prev_1 = (Close - lag(Close, 1))/ lag(Close, 1),
+  Prev_5 = (Close - lag(Close, 5))/ lag(Close, 5),
+  Prev_12 = (Close - lag(Close, 12))/lag(Close, 12),
+  Prev_24 = (Close - lag(Close, 24))/lag(Close, 24),
+  Prev_5_Avg = rollapply(Prev_5, width = 5, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  Prev_12_Avg = rollapply(Prev_12, width = 12, FUN = mean , align = "right", fill = NA, partial = FALSE),
+  Prev_24_Avg = rollapply(Prev_24, width = 24, FUN = mean , align = "right", fill = NA, partial = FALSE)
+)
+data = data[, !names(data) %in% c("Datetime", "Max","Min", "MaxC", "MinC", "Adj Close", "Volume")]
+data = data[, 2:length(names(data))]
+data = na.omit(data)
+return(data)
+}
+```
+
+
+```{r}
+train_ <- preparation(train)
+test_ <- preparation(test)
+eval_ <- preparation(eval)
+```
+
+```{r}
+view(train_)
+view(eval_)
+view(test_)
+
+```
+
+
+```{r}
+view(cor(na.omit(train_)))
+view(cor(na.omit(test_)))
+view(cor(na.omit(eval_)))
+```
+
+```{r}
+names(train_)
+```
+
+
+```{r}
+write_csv(train_, "Data/train_prepared.csv")
+write_csv(test_, "Data/test_prepared.csv")
+write_csv(eval_, "Data/eval_prepared.csv")
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
